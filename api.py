@@ -28,7 +28,8 @@ def obter_usuarios():
             "telefone": "1-463-123-4447"
         }
     ]
-    return jsonify(lista_usuarios)
-
-if __name__ == "__main__":
-    app.run(debug=True)
+    
+    if __name__ == "__main__":
+    import os
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host='0.0.0.0', port=port)
