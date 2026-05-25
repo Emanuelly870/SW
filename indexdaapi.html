@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SPA Consumindo API</title>
+    <style>
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: rgb(255, 247, 231);
+            margin: 0;
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        h1 {
+            color: #4c2b99;
+            margin-bottom: 5px;
+        }
+
+        p.subtitulo {
+            color: #7e7e7e;
+            margin-bottom: 20px;
+        }
+
+        button {
+            background-color: #784fd8;
+            color: rgb(255, 255, 255);
+            border: none;
+            padding: 12px 24px;
+            font-size: 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            margin-bottom: 30px;
+        }
+
+        button:hover {
+            background-color: #a57fff;
+        }
+
+
+        #container-usuarios {
+            width: 100%;
+            max-width: 500px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+
+        .card-usuario {
+            background: #d8c7ff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            border-left: 5px solid #784fd8;
+        }
+
+        .card-usuario h3 {
+            margin: 0 0 10px 0;
+            color: #4c2b99;
+        }
+
+        .card-usuario p {
+            margin: 5px 0;
+            color: #7e7e7e;
+            font-size: 14px;
+        }
+
+        .card-usuario strong {
+            color: #616161;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Lista de Usuários</h1>
+    <p class="subtitulo">Clique no botão para carregar os usuários da API</p>
+    
+   
+    <button id="btn-carregar">Buscar Usuários</button>
+
+    
+    <div id="container-usuarios"></div>
+
+    <script>
+        
+        const API_URL = "http://127.0.0.1:5000/usuarios";
+
+        const btnCarregar = document.getElementById('btn-carregar');
+        const containerUsuarios = document.getElementById('container-usuarios');
+
+       
+        async function buscarUsuarios() {
+            try {
+                
+                containerUsuarios.innerHTML = "<p>Carregando usuários...</p>";
+
+      
+                const response = await fetch(API_URL);
+                
+                if (!response.ok) {
+                    throw new Error("Erro ao buscar dados da API");
+                }
+
+              
+                const usuarios = await response.json();
+
+                
+                containerUsuarios.innerHTML = "";
+
+            
+                usuarios.forEach(usuario => {
+                    
+                    const card = document.createElement('div');
+                    card.className = 'card-usuario';
+
+                    
+                    card.innerHTML = `
+                        <h3>${usuario.nome}</h3>
+                        <p><strong>Email:</strong> ${usuario.email}</p>
+                        <p><strong>Telefone:</strong> ${usuario.telefone}</p>
+                    `;
+
+                    
+                    containerUsuarios.appendChild(card);
+                });
+
+            } catch (error) {
+                console.error("Erro:", error);
+                containerUsuarios.innerHTML = "<p style='color: red;'>Não foi possível carregar os usuários. Verifique se a API está rodando.</p>";
+            }
+        }
+
+        
+        btnCarregar.addEventListener('click', buscarUsuarios);
+    </script>
+</body>
+</html>
