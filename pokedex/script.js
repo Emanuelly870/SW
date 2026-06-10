@@ -14,33 +14,39 @@ const buttonNext = document.querySelector('.btn-next');
 
 let searchPokemon = 1;
 
-const fetchPokemon = async (pokemon) => {
-
+// Função assíncrona para buscar Pokémon
+async function fetchPokemon(pokemon) {
   try {
-
     const response = await fetch(
       `https://pokeapi.co/api/v2/pokemon/${pokemon}`
     );
 
-    if (response.status === 200) {
-      return await response.json();
+    if (!response.ok) {
+      throw new Error('Pokémon não encontrado');
     }
 
-    return null;
+    const data = await response.json();
+    return data;
 
-  } catch {
+  } catch (error) {
+    console.error('Erro ao buscar Pokémon:', error.message);
     return null;
   }
-};
+}
 
-const renderPokemon = async (pokemon) => {
+// Função assíncrona para renderizar Pokémon
+async function renderPokemon(pokemon) {
 
-  pokemonName.innerHTML = 'Carregando...';
-  pokemonNumber.innerHTML = '';
+  try {
 
-  const data = await fetchPokemon(pokemon);
+    pokemonName.innerHTML = 'Carregando...';
+    pokemonNumber.innerHTML = '';
 
-  if (data) {
+    const data = await fetchPokemon(pokemon);
+
+    if (!data) {
+      throw new Error('Dados não encontrados');
+    }
 
     pokemonImage.style.display = 'block';
 
@@ -49,7 +55,7 @@ const renderPokemon = async (pokemon) => {
 
     pokemonImage.src =
       data.sprites.versions['generation-v']
-      ['black-white'].animated.front_default
+        ['black-white'].animated.front_default
       || data.sprites.front_default;
 
     pokemonTypes.innerHTML =
@@ -64,7 +70,9 @@ const renderPokemon = async (pokemon) => {
     searchPokemon = data.id;
     input.value = '';
 
-  } else {
+  } catch (error) {
+
+    console.error('Erro ao renderizar Pokémon:', error.message);
 
     pokemonImage.style.display = 'none';
 
@@ -75,25 +83,23 @@ const renderPokemon = async (pokemon) => {
     pokemonHeight.innerHTML = '-';
     pokemonWeight.innerHTML = '-';
   }
-};
+}
 
-form.addEventListener('submit', (event) => {
+form.addEventListener('submit', async (event) => {
   event.preventDefault();
-  renderPokemon(input.value.toLowerCase());
+  await renderPokemon(input.value.toLowerCase());
 });
 
-buttonPrev.addEventListener('click', () => {
-
+buttonPrev.addEventListener('click', async () => {
   if (searchPokemon > 1) {
     searchPokemon--;
-    renderPokemon(searchPokemon);
+    await renderPokemon(searchPokemon);
   }
-
 });
 
-buttonNext.addEventListener('click', () => {
+buttonNext.addEventListener('click', async () => {
   searchPokemon++;
-  renderPokemon(searchPokemon);
+  await renderPokemon(searchPokemon);
 });
 
 renderPokemon(searchPokemon);
