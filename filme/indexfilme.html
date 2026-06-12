@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MovieFinder</title>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            background-color: #141414;
+            color: #ffffff;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        header h1 {
+            color: #e50914;
+            font-size: 2.5rem;
+        }
+
+        .search-container {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            max-width: 500px;
+            margin: 0 auto 20px auto;
+        }
+
+        #campoBusca {
+            flex: 1;
+            padding: 10px;
+            border-radius: 4px;
+            border: none;
+            background-color: #333;
+            color: #fff;
+            font-size: 1rem;
+        }
+
+        #botaoBuscar {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            background-color: #e50914;
+            color: white;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        #botaoBuscar:hover {
+            background-color: #b81d24;
+        }
+
+        #mensagemErro {
+            text-align: center;
+            color: #ffcc00;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+
+        .results-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 20px;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background-color: #1f1f1f;
+            border-radius: 8px;
+            overflow: hidden;
+            padding: 15px;
+            border: 1px solid #333;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .card img {
+            width: 100%;
+            height: 280px;
+            object-fit: cover;
+            border-radius: 4px;
+        }
+
+        .card h3 {
+            font-size: 1.1rem;
+            color: #fff;
+            margin-top: 5px;
+        }
+
+        .card p {
+            font-size: 0.85rem;
+            color: #aaa;
+            line-height: 1.4;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>MovieFinder</h1>
+    </header>
+
+    <main>
+        <div class="search-container">
+            <input type="text" id="campoBusca" placeholder="Digite uma série ou filme...">
+            <button id="botaoBuscar">Buscar</button>
+        </div>
+
+        <div id="mensagemErro"></div>
+        <div id="resultados" class="results-container"></div>
+    </main>
+
+    <script>
+        const botaoBuscar = document.getElementById('botaoBuscar');
+        const campoBusca = document.getElementById('campoBusca');
+        const resultados = document.getElementById('resultados');
+        const mensagemErro = document.getElementById('mensagemErro');
+
+        botaoBuscar.addEventListener('click', async () => {
+            await executarBusca();
+        });
+
+        // Permite buscar ao apertar Enter
+        campoBusca.addEventListener('keypress', async (e) => {
+            if (e.key === 'Enter') {
+                await executarBusca();
+            }
+        });
+
+        async function executarBusca() {
+            const termo = campoBusca.value.trim();
+
+            resultados.innerHTML = '';
+            mensagemErro.textContent = '';
+
+            if (termo === '') {
+                mensagemErro.textContent = 'Por favor, digite algo para buscar!';
+                return;
+            }
+
+            try {
+                mensagemErro.textContent = 'Carregando...';
+
+                const resposta = await fetch(`https://api.tvmaze.com/search/shows?q=${encodeURIComponent(termo)}`);
+
+                if (!resposta.ok) {
+                    throw new Error();
+                }
+
+                const dados = await resposta.json();
+                mensagemErro.textContent = '';
+
+                if (dados.length === 0) {
+                    mensagemErro.textContent = 'Nenhum filme ou série encontrado com esse nome.';
+                    return;
+                }
+
+                let conteudoHTML = '';
+
+                dados.forEach(item => {
+                    const show = item.show;
+
+                    const imagem = show.image ? show.image.medium : 'https://via.placeholder.com/210x295?text=Sem+Foto';
+                    const ano = show.premiered ? show.premiered.split('-')[0] : 'N/A';
+                    const generos = show.genres.length > 0 ? show.genres.join(', ') : 'Não informado';
+                    const sinopse = show.summary ? show.summary.replace(/<[^>]*>/g, '') : 'Sem sinopse disponível.';
+
+                    conteudoHTML += `
+                        <div class="card">
+                            <img src="${imagem}" alt="${show.name}">
+                            <h3>${show.name}</h3>
+                            <p><strong>Ano:</strong> ${ano}</p>
+                            <p><strong>Gênero:</strong> ${generos}</p>
+                            <p style="margin-top: 8px; color: #ddd;">${sinopse.substring(0, 120)}...</p>
+                        </div>
+                    `;
+                });
+
+                resultados.innerHTML = conteudoHTML;
+
+            } catch (error) {
+                mensagemErro.textContent = 'Erro de conexão. Verifique sua internet e tente novamente.';
+            }
+        }
+    </script>
+</body>
+</html>
